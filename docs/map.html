@@ -85,9 +85,10 @@
   <div class="legend-row" data-cat="abiotic"><span class="swatch" style="background:#0000FF"></span>Abiotic<span class="count" id="count-abiotic"></span></div>
   <div class="legend-row" data-cat="human"><span class="swatch" style="background:#172554"></span>Human experience<span class="count" id="count-human"></span></div>
   <h2 style="margin-top:10px">GIS layers (official data)</h2>
-  <div class="legend-row" data-layer="park-boundary"><span class="swatch" style="background:#172554;border-radius:2px"></span>Park boundary (NParks)</div>
-  <div class="legend-row" data-layer="water-bodies"><span class="swatch" style="background:#0000FF;border-radius:2px"></span>Water bodies (URA)</div>
-  <div class="legend-row" data-layer="streams"><span class="swatch" style="background:#0000FF;border-radius:2px"></span>Streams &amp; drains (OSM)</div>
+  <div class="legend-row" data-layer="park-boundary"><span class="swatch" style="background:#c6da52;border-radius:2px"></span>Matrix (park boundary)</div>
+  <div class="legend-row" data-layer="water-bodies"><span class="swatch" style="background:#0000FF;border-radius:2px"></span>Patch (water bodies)</div>
+  <div class="legend-row" data-layer="streams"><span class="swatch" style="background:#000000;border-radius:2px"></span>Corridor &mdash; abiotic (streams &amp; drains)</div>
+  <div class="legend-row" data-layer="human-corridor"><span class="swatch" style="background:#000000;border-radius:2px"></span>Corridor &mdash; human (footways &amp; paths)</div>
 </div>
 
 <script>
@@ -106,6 +107,7 @@ const CATEGORY_COLORS = {
 
 // Populate legend counts
 const counts = {biotic:0, abiotic:0, human:0};
+const humanCorridorGeojson = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8728729, 1.3388600000000002], [103.8728187, 1.3387103000000002], [103.8728349, 1.338469], [103.8727857, 1.3383644000000001], [103.8727788, 1.3382423], [103.8727488, 1.3381285], [103.8727611, 1.3380448], [103.8727942, 1.3380032000000002], [103.872851, 1.3379449999999995], [103.8729161, 1.3379170000000002], [103.8731484, 1.3379323], [103.8733052, 1.3379065000000003], [103.8734006, 1.3378753], [103.8734712, 1.3378835], [103.8736264, 1.3379219000000002], [103.8738649, 1.3379140000000003], [103.8739367, 1.3379204], [103.8740258, 1.3379617000000001], [103.8741196, 1.3380211000000002], [103.8741683, 1.3381664], [103.8741722, 1.3383594], [103.8742033, 1.3384503], [103.8742304, 1.3385462999999997], [103.8742311, 1.338622], [103.8742203, 1.3386581], [103.8741662, 1.3386995], [103.8741051, 1.3387362], [103.8740421, 1.3387584999999997], [103.8739736, 1.3387813], [103.8739383, 1.3388092999999999], [103.8738992, 1.3388525], [103.8738784, 1.3389011999999998], [103.8738572, 1.3389842000000003], [103.8738817, 1.3390924999999998], [103.8739286, 1.3391857], [103.8739453, 1.33926], [103.8739301, 1.3393513000000001], [103.8738775, 1.3393895], [103.8738323, 1.3393751999999999], [103.8737921, 1.3393404], [103.8737224, 1.3392942000000003], [103.87352660000002, 1.3392951], [103.8733755, 1.3392682], [103.87324730000002, 1.3392666], [103.8730849, 1.3393023], [103.8730101, 1.3392916], [103.8729143, 1.3392178], [103.8728842, 1.3391331], [103.8728884, 1.3390323], [103.8728729, 1.3388600000000002]]}, "properties": {"osm_id": 1313432720, "highway": "footway", "name": "", "surface": "asphalt", "_fid": 76}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8729284, 1.3380872000000001], [103.8727942, 1.3380032000000002], [103.8727021, 1.3379436999999998], [103.8726284, 1.3378557]]}, "properties": {"osm_id": 1313433531, "highway": "footway", "name": "", "surface": "", "_fid": 77}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8738775, 1.3393895], [103.8738785, 1.3395434000000002]]}, "properties": {"osm_id": 1313433533, "highway": "footway", "name": "", "surface": "asphalt", "_fid": 79}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8750585, 1.3393154000000003], [103.8750379, 1.3393338999999997], [103.8750161, 1.3393422000000001], [103.8749736, 1.3393296000000001], [103.8749423, 1.3393166], [103.8749023, 1.3393311], [103.8748877, 1.3393631], [103.8748696, 1.3393824], [103.8748364, 1.3393946], [103.8748019, 1.339417], [103.8747768, 1.3394579999999998], [103.87474300000001, 1.3394735000000002], [103.8747055, 1.3394692], [103.8746704, 1.3394765000000002], [103.8746244, 1.3395083], [103.8745677, 1.3395392000000002], [103.8744807, 1.33955], [103.8744513, 1.3395908], [103.8743929, 1.3396031], [103.87433510000001, 1.339637], [103.8742812, 1.3396528], [103.8742279, 1.3396635999999997], [103.8741658, 1.3397346]]}, "properties": {"osm_id": 1313433534, "highway": "footway", "name": "", "surface": "", "_fid": 80}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8740488, 1.3411549], [103.8740616, 1.3411168], [103.8740071, 1.3410378], [103.8739861, 1.3410014], [103.8739927, 1.3409583000000005], [103.8740341, 1.3409064000000002], [103.8740433, 1.3408720000000003], [103.8740312, 1.3408397], [103.8739834, 1.340818], [103.8738884, 1.3408147], [103.8738497, 1.3408003999999998], [103.8738275, 1.3407809000000002], [103.87381350000001, 1.3407527999999997], [103.8738289, 1.3407010000000001], [103.8738495, 1.3406672000000002], [103.8738892, 1.3406441000000002], [103.873942, 1.3406372], [103.8739964, 1.3406615], [103.8740595, 1.3406866], [103.8741005, 1.340682], [103.8741616, 1.3406941000000003], [103.87420730000001, 1.3407387], [103.8742312, 1.3407376], [103.8742806, 1.3406974], [103.8743037, 1.3407063], [103.8743335, 1.3407502000000002], [103.874361, 1.3407536], [103.874384, 1.3407381999999999], [103.8744259, 1.3406861]]}, "properties": {"osm_id": 1322908026, "highway": "footway", "name": "", "surface": "", "_fid": 88}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8744259, 1.3406861], [103.8744794, 1.3406122000000003], [103.8745947, 1.3406315000000002], [103.8745968, 1.3405641], [103.87450310000001, 1.3404441], [103.8745941, 1.3403493], [103.8745815, 1.3403011], [103.8746762, 1.3402729999999998], [103.874706, 1.3401941]]}, "properties": {"osm_id": 1322908027, "highway": "footway", "name": "", "surface": "metal_grid", "_fid": 89}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8740258, 1.3379617000000001], [103.874104, 1.3380867], [103.8741323, 1.3382018], [103.8741171, 1.3383192], [103.8740953, 1.3384430000000003], [103.8740758, 1.3385299], [103.874006, 1.3385918], [103.8739261, 1.3386055999999995], [103.8738508, 1.3386194999999999], [103.8738154, 1.3386717], [103.87378900000002, 1.3387448999999998], [103.8737534, 1.3388436], [103.8737078, 1.3389698000000003], [103.8736156, 1.3390835000000003], [103.8735219, 1.3391219], [103.8733006, 1.339125], [103.873193, 1.3391588000000003], [103.8731161, 1.3391880000000003], [103.8730408, 1.3391849], [103.8729794, 1.3391403000000002], [103.8729302, 1.3390620000000002], [103.8728884, 1.3390323]]}, "properties": {"osm_id": 1322908040, "highway": "footway", "name": "", "surface": "", "_fid": 98}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.87404695136945, 1.3411546473920595], [103.87404695136945, 1.3411546473920595], [103.87412823311524, 1.3412098143756026], [103.87419609218517, 1.341228451869796], [103.87429825364353, 1.3412157783740355], [103.87434075877559, 1.3412202513726044], [103.87444515734569, 1.3412605083594826], [103.87452420197621, 1.3412701998563108], [103.87457416414861, 1.3412530533622373], [103.87470583786325, 1.341250883152739], [103.87486847832201, 1.3411841373604432], [103.8749647995171, 1.341114500436973], [103.87504504157289, 1.3410150330372659], [103.87510005820394, 1.3409116061814075], [103.87514904246837, 1.340763476694363], [103.87516089543453, 1.3406025179780983], [103.87507557654868, 1.3403144963748304]]}, "properties": {"osm_id": null, "highway": "footway", "name": "", "surface": "", "custom": true, "_fid": 184}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.87507360870552, 1.3403124403245101], [103.87499493719662, 1.3403154653232576], [103.87489407628834, 1.3402973153270636], [103.87480935312601, 1.340265048666467], [103.87473572466223, 1.3402206820075833], [103.87434841877513, 1.339890957041419]]}, "properties": {"osm_id": null, "highway": "footway", "name": "", "surface": "", "custom": true, "_fid": 185}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.87434642697866, 1.339882520858879], [103.87417048263694, 1.3397298197286034], [103.873936534667, 1.339540392997847]]}, "properties": {"osm_id": null, "highway": "footway", "name": "", "surface": "", "custom": true, "_fid": 186}}, {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[103.8738782606942, 1.3395442945735425], [103.87393538242952, 1.3395390434362326], [103.8741389196444, 1.3395278847677332], [103.87429452712746, 1.339477342565715]]}, "properties": {"osm_id": null, "highway": "footway", "name": "", "surface": "", "custom": true, "_fid": 188}}]};
 geojson.features.forEach(f => { counts[f.properties.category] = (counts[f.properties.category]||0) + 1; });
 Object.keys(counts).forEach(k => {
   const el = document.getElementById('count-' + k);
@@ -114,13 +116,53 @@ Object.keys(counts).forEach(k => {
 
 const map = new maplibregl.Map({
   container: 'map',
-  style: 'https://tiles.openfreemap.org/styles/liberty',
+  style: 'https://tiles.openfreemap.org/styles/positron',
   center: [103.8735, 1.3388],
   zoom: 16.5,
-  pitch: 0
+  pitch: 60,
+  bearing: -15,
+  maxPitch: 85
 });
 
 map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+map.on('load', () => {
+  map.addSource('terrain-dem', {
+    type: 'raster-dem',
+    tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+    encoding: 'terrarium',
+    tileSize: 256,
+    maxzoom: 15
+  });
+  map.setTerrain({ source: 'terrain-dem', exaggeration: 3 });
+  map.addLayer({
+    id: 'hillshade',
+    type: 'hillshade',
+    source: 'terrain-dem',
+    paint: { 'hillshade-exaggeration': 0.5 }
+  });
+  map.setSky({
+    'sky-color': '#e9f2ff',
+    'sky-horizon-blend': 0.5,
+    'horizon-color': '#f7f9fb',
+    'horizon-fog-blend': 0.5,
+    'fog-color': '#f7f9fb',
+    'fog-ground-blend': 0.3
+  });
+  map.addLayer({
+    id: 'buildings-3d',
+    type: 'fill-extrusion',
+    source: 'openmaptiles',
+    'source-layer': 'building',
+    minzoom: 13,
+    paint: {
+      'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+      'fill-extrusion-color': '#d6d6d6',
+      'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 5],
+      'fill-extrusion-opacity': 0.85
+    }
+  });
+});
 
 let activeCats = new Set(['biotic','abiotic','human']);
 const allMarkers = [];
@@ -171,33 +213,40 @@ map.on('load', () => {
   map.addSource('park-boundary', { type: 'geojson', data: parkBoundaryGeojson });
   map.addLayer({
     id: 'park-boundary-fill', type: 'fill', source: 'park-boundary',
-    paint: { 'fill-color': '#172554', 'fill-opacity': 0.08 }
+    paint: { 'fill-color': '#c6da52', 'fill-opacity': 0.18 }
   });
   map.addLayer({
     id: 'park-boundary-line', type: 'line', source: 'park-boundary',
-    paint: { 'line-color': '#172554', 'line-width': 2 }
+    paint: { 'line-color': '#c6da52', 'line-width': 2, 'line-opacity': 0.5 }
   });
 
   map.addSource('water-bodies', { type: 'geojson', data: waterBodyGeojson });
   map.addLayer({
     id: 'water-bodies-fill', type: 'fill', source: 'water-bodies',
-    paint: { 'fill-color': '#0000FF', 'fill-opacity': 0.35 }
+    paint: { 'fill-color': '#0000FF', 'fill-opacity': 0.25 }
   });
   map.addLayer({
     id: 'water-bodies-line', type: 'line', source: 'water-bodies',
-    paint: { 'line-color': '#0000FF', 'line-width': 1.5 }
+    paint: { 'line-color': '#0000FF', 'line-width': 1.5, 'line-opacity': 0.5 }
   });
 
   map.addSource('streams', { type: 'geojson', data: streamsGeojson });
   map.addLayer({
     id: 'streams-fill', type: 'fill', source: 'streams',
     filter: ['==', ['geometry-type'], 'Polygon'],
-    paint: { 'fill-color': '#0000FF', 'fill-opacity': 0.4 }
+    paint: { 'fill-color': '#0000FF', 'fill-opacity': 0.25 }
   });
   map.addLayer({
     id: 'streams-line', type: 'line', source: 'streams',
     filter: ['==', ['geometry-type'], 'LineString'],
-    paint: { 'line-color': '#0000FF', 'line-width': 2, 'line-dasharray': [1, 1] }
+    paint: { 'line-color': '#000000', 'line-width': 2, 'line-dasharray': [1, 1], 'line-opacity': 0.45 }
+  });
+
+  map.addSource('humanCorridor', { type: 'geojson', data: humanCorridorGeojson });
+  map.addLayer({
+    id: 'human-corridor-line', type: 'line', source: 'humanCorridor',
+    layout: { 'line-cap': 'round' },
+    paint: { 'line-color': '#000000', 'line-width': 3, 'line-opacity': 0.55 }
   });
 
   geojson.features.forEach(feature => {
@@ -233,10 +282,11 @@ document.querySelectorAll('.legend-row[data-layer]').forEach(row => {
     const layerId = row.dataset.layer;
     const fillId = layerId + '-fill';
     const lineId = layerId + '-line';
-    const visible = map.getLayoutProperty(fillId, 'visibility') !== 'none';
+    const refId = map.getLayer(fillId) ? fillId : lineId;
+    const visible = map.getLayoutProperty(refId, 'visibility') !== 'none';
     const newVis = visible ? 'none' : 'visible';
-    map.setLayoutProperty(fillId, 'visibility', newVis);
-    map.setLayoutProperty(lineId, 'visibility', newVis);
+    if (map.getLayer(fillId)) map.setLayoutProperty(fillId, 'visibility', newVis);
+    if (map.getLayer(lineId)) map.setLayoutProperty(lineId, 'visibility', newVis);
     row.classList.toggle('dim', visible);
   });
 });

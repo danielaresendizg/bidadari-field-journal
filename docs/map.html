@@ -66,7 +66,7 @@
   .photo-marker.cat-biotic{outline:3px solid #38BDF8}
   .photo-marker.cat-abiotic{outline:3px solid #0000FF}
   .photo-marker.cat-human{outline:3px solid #172554}
-  .photo-marker.enlarged{width:170px;height:170px;outline-width:5px;border-width:4px;transition:width 200ms ease,height 200ms ease}
+  .photo-marker.enlarged{width:102px;height:102px;outline-width:4px;border-width:3px;transition:width 200ms ease,height 200ms ease}
 
 </style>
 </head>
@@ -188,7 +188,7 @@ function updateMarkerLayout() {
     return;
   }
 
-  const minDist = 180;
+  const minDist = 110;
   const positions = visible.map(m => {
     const p = map.project(m.lngLat);
     return { m, x: p.x, y: p.y, ox: 0, oy: 0 };

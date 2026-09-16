@@ -51,20 +51,10 @@
   #popup-card .fn{font-weight:700;word-break:break-all;margin-bottom:4px}
   #popup-card .row{margin-bottom:2px}
   #popup-card .label{color:#666;display:inline-block;min-width:64px}
-  #popup-card .group-scroll{
-    display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;border-radius:4px;
-  }
-  #popup-card .group-slide{flex:0 0 100%;scroll-snap-align:center}
-  #popup-card .group-slide .popup-photo{max-height:200px}
-  #popup-card .group-dots{display:flex;justify-content:center;gap:5px;margin-top:6px}
-  #popup-card .group-dot{width:6px;height:6px;border-radius:50%;background:#ccc}
-  #popup-card .group-dot.active{background:#0000FF}
   .maplibregl-popup-content{padding:12px 14px;border-radius:4px;background:rgba(255,255,255,0.8)}
   .maplibregl-ctrl-attrib{font-size:10px}
 
   .photo-marker{
-    position:relative;
     width:34px;height:34px;border-radius:50%;
     background-size:cover;background-position:center;background-color:#ddd;
     border:2.5px solid #fff;
@@ -76,16 +66,6 @@
   .photo-marker.cat-biotic{outline:3px solid #38BDF8}
   .photo-marker.cat-abiotic{outline:3px solid #0000FF}
   .photo-marker.cat-human{outline:3px solid #172554}
-  .photo-marker.enlarged{width:68px;height:68px;outline-width:3.5px;border-width:3px;transition:width 200ms ease,height 200ms ease}
-  .photo-marker.enlarged.cat-human{width:102px;height:102px;outline-width:4px;border-width:3px}
-  .photo-marker.grouped::after{
-    content:attr(data-count);
-    position:absolute;top:-6px;right:-6px;
-    background:#FF3B30;color:#fff;font-size:11px;font-weight:700;
-    width:20px;height:20px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    border:2px solid #fff;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
-  }
 
 </style>
 </head>
@@ -164,59 +144,9 @@ map.on('load', () => {
 let activeCats = new Set(['biotic','abiotic','human']);
 const allMarkers = [];
 
-// filename -> { group, description }, filled in once the abiotic content-type
-// review is done; any abiotic photo not listed here just stays its own group.
-const ABIOTIC_GROUPS = {"JANELLE_V1_IMG_5663.JPG": {"group": "stream_cascade_closeup", "description": "Close-up cascade, water flowing over rocks amid dense streamside vegetation"}, "DANIELA_IMG_8374.HEIC": {"group": "stream_cascade_closeup", "description": "Close-up cascade, water flowing over rocks amid dense streamside vegetation"}, "JANELLE_V2_IMG_5727.MOV": {"group": "stream_cascade_closeup", "description": "Close-up cascade, water flowing over rocks amid dense streamside vegetation"}, "JANELLE_V1_IMG_5695.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V1_IMG_5686.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V2_IMG_5730.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V1_IMG_5684.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V2_IMG_5760.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "DANIELA_IMG_8322.HEIC": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V2_IMG_5793.JPG": {"group": "stream_channel_shallow", "description": "Shallow rocky stream channel through the park, apartment towers visible behind"}, "JANELLE_V2_IMG_5759.JPG": {"group": "stream_valley_overview", "description": "Elevated view of the stream valley draining toward the lake/plaza"}, "JANELLE_V2_IMG_5724.JPG": {"group": "stream_lake_hybrid", "description": "Stream flowing toward the lake, with the lake/plaza visible in the background"}, "JANELLE_V2_IMG_5725.JPG": {"group": "stream_lake_hybrid", "description": "Stream flowing toward the lake, with the lake/plaza visible in the background"}, "JANELLE_V1_IMG_5632.JPG": {"group": "lake_vista_tree_rock", "description": "Lake vista with a tree/island, bank rocks, or grotto-like rockwork at the water's edge"}, "JANELLE_V1_IMG_5672.JPG": {"group": "lake_vista_tree_rock", "description": "Lake vista with a tree/island, bank rocks, or grotto-like rockwork at the water's edge"}, "JANELLE_V1_IMG_5673.JPG": {"group": "lake_vista_tree_rock", "description": "Lake vista with a tree/island, bank rocks, or grotto-like rockwork at the water's edge"}, "JANELLE_V2_IMG_5796.JPG": {"group": "lake_vista_tree_rock", "description": "Lake vista with a tree/island, bank rocks, or grotto-like rockwork at the water's edge"}, "JANELLE_V1_IMG_5657.JPG": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "JANELLE_V1_IMG_5674.JPG": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "DANIELA_IMG_8348.HEIC": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "DANIELA_IMG_8357.HEIC": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "DANIELA_IMG_8370.HEIC": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "DANIELA_IMG_8389.HEIC": {"group": "lake_edge_tree", "description": "Large tree overhanging the lake edge / tree-covered island, apartment towers behind"}, "DANIELA_IMG_8314.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8317.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8321.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8358.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8360.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8361.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8362.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8364.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8366.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8367.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8380.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8414.HEIC": {"group": "lake_vista_wide", "description": "Wide lake view with apartment towers backdrop and aerating fountain jets"}, "DANIELA_IMG_8316.HEIC": {"group": "drainage_structure", "description": "Concrete culvert / drainage outlet structure (ABC Waters treatment train)"}, "JANELLE_V2_IMG_5772.JPG": {"group": "drainage_structure", "description": "Concrete culvert / drainage outlet structure (ABC Waters treatment train)"}, "JANELLE_V2_IMG_5768.JPG": {"group": "slope_erosion_control", "description": "Concrete-block erosion-control structure built into a slope"}, "JANELLE_V1_IMG_5718.JPG": {"group": "tree_trunk", "description": "Tree trunk bark texture with cavities/hollows"}, "JANELLE_V1_IMG_5722.JPG": {"group": "tree_trunk", "description": "Tree trunk bark texture with cavities/hollows"}, "JANELLE_V2_IMG_5804.JPG": {"group": "dry_pond_bed", "description": "Dry pond bed (wetland pond emptied during dry season), viewed from boardwalk"}, "JANELLE_V2_IMG_5814.JPG": {"group": "dry_pond_bed", "description": "Dry pond bed (wetland pond emptied during dry season), viewed from boardwalk"}, "DANIELA_IMG_8337.HEIC": {"group": "dry_pond_bed", "description": "Dry pond bed (wetland pond emptied during dry season), viewed from boardwalk"}, "JANELLE_V2_IMG_5820.JPG": {"group": "dry_pond_bed", "description": "Dry pond bed (wetland pond emptied during dry season), viewed from boardwalk"}, "JANELLE_V2_IMG_5803.JPG": {"group": "pathway_paved", "description": "Paved walking path through the park matrix"}, "JANELLE_V2_IMG_5829.JPG": {"group": "pathway_paved", "description": "Paved walking path through the park matrix"}, "DANIELA_IMG_8356.HEIC": {"group": "pathway_paved", "description": "Paved walking path through the park matrix"}, "DANIELA_IMG_8387.HEIC": {"group": "pathway_paved", "description": "Paved walking path through the park matrix"}, "DANIELA_IMG_8388.HEIC": {"group": "pathway_paved", "description": "Paved walking path through the park matrix"}, "JANELLE_V2_IMG_5762.JPG": {"group": "structure_bridge", "description": "Built bridge/boardwalk structure spanning the water"}, "DANIELA_IMG_8325.HEIC": {"group": "structure_bridge", "description": "Built bridge/boardwalk structure spanning the water"}, "DANIELA_IMG_8343.HEIC": {"group": "hardscape_plaza", "description": "Paved viewing deck with railings, not a walking path specifically"}, "DANIELA_IMG_8344.HEIC": {"group": "hardscape_plaza", "description": "Paved viewing deck with railings, not a walking path specifically"}, "JANELLE_V2_IMG_5808.JPG": {"group": "rock_hardscape_other", "description": "Loose/stacked landscaping rocks, no water present"}, "JANELLE_V1_IMG_5679.JPG": {"group": "signage", "description": "Informational/restricted-area signage in a meadow patch"}, "JANELLE_V1_IMG_5680.JPG": {"group": "signage", "description": "Informational/restricted-area signage in a meadow patch"}, "JANELLE_V2_IMG_5766.JPG": {"group": "meadow_grassland", "description": "Unmown meadow / naturalized grassland patch (low-maintenance ground cover)"}, "JANELLE_V2_IMG_5747.JPG": {"group": "vegetation_management", "description": "Ground litter / dry plant debris (maintenance traces)"}, "JANELLE_V1_IMG_5646.JPG": {"group": "water_body_other", "description": "Pond/stream water's edge with emergent vegetation or rocks"}, "JANELLE_V2_IMG_5738.JPG": {"group": "water_body_other", "description": "Pond/stream water's edge with emergent vegetation or rocks"}, "JANELLE_V2_IMG_5758.JPG": {"group": "water_body_other", "description": "Pond/stream water's edge with emergent vegetation or rocks"}, "JANELLE_V1_IMG_5667.JPG": {"group": "water_body_other", "description": "Pond/stream water's edge with emergent vegetation or rocks"}, "JANELLE_V1_IMG_5648.JPG": {"group": "water_channel_vista", "description": "Wider water channel/canal view with grassy banks and buildings beyond"}, "JANELLE_V1_IMG_5649.JPG": {"group": "water_channel_vista", "description": "Wider water channel/canal view with grassy banks and buildings beyond"}};
-
-function bioticGroupKey(species) {
-  if (!species) return null;
-  const m = species.match(/^([^(]+)/);
-  return (m ? m[1] : species).trim();
-}
-
-function computeGroups() {
-  const buckets = {};
-  allMarkers.forEach(m => {
-    let key, label;
-    if (m.category === 'biotic') {
-      key = bioticGroupKey(m.properties.species) || m.properties.filename;
-      label = bioticGroupKey(m.properties.species) || m.properties.species || m.properties.filename;
-    } else if (m.category === 'abiotic' && ABIOTIC_GROUPS[m.properties.filename]) {
-      key = ABIOTIC_GROUPS[m.properties.filename].group;
-      label = ABIOTIC_GROUPS[m.properties.filename].description;
-    } else {
-      key = m.properties.filename;
-      label = m.properties.species || m.category;
-    }
-    const bucketKey = m.category + '::' + key;
-    (buckets[bucketKey] = buckets[bucketKey] || []).push(m);
-    m._groupLabel = label;
-  });
-  Object.values(buckets).forEach(members => {
-    members.forEach((m, i) => {
-      m.groupMembers = members;
-      m.isRepresentative = (i === 0);
-      m.groupLabel = m._groupLabel;
-      const el = m.marker.getElement();
-      el.dataset.count = members.length;
-    });
-  });
-}
-
 function applyFilter() {
-  updateMarkerLayout();
-}
-
-function updateMarkerLayout() {
-  const singleActive = activeCats.size === 1;
-
-  allMarkers.forEach(m => {
-    const show = activeCats.has(m.category) && (!singleActive || m.isRepresentative);
-    const el = m.marker.getElement();
-    el.style.display = show ? '' : 'none';
-    el.classList.toggle('enlarged', singleActive && show);
-    el.classList.toggle('grouped', singleActive && show && m.groupMembers && m.groupMembers.length > 1);
-    m.marker.setOffset([0, 0]);
+  allMarkers.forEach(({ marker, category }) => {
+    marker.getElement().style.display = activeCats.has(category) ? '' : 'none';
   });
 }
 
@@ -254,40 +184,6 @@ function openPhotoPopup(p, lngLat) {
     .setHTML(html)
     .on('close', () => { currentPopup = null; })
     .addTo(map);
-}
-
-function openGroupPopup(members, label, lngLat) {
-  if (currentPopup) { currentPopup.remove(); currentPopup = null; }
-
-  const slides = members.map(p => `
-    <div class="group-slide">
-      <img class="popup-photo" src="${p.thumb}" alt="${p.category}" onerror="this.style.display='none'">
-    </div>`).join('');
-
-  const dots = members.map((_, i) => `<span class="group-dot" data-i="${i}"></span>`).join('');
-
-  const html = `
-    <div id="popup-card">
-      <div class="fn">${label}</div>
-      <div class="group-scroll" id="group-scroll">${slides}</div>
-      <div class="group-dots">${dots}</div>
-      <div class="row" style="color:#999;font-size:10px;text-align:center;margin-top:4px">${members.length} photos &middot; swipe to see more</div>
-    </div>`;
-
-  currentPopup = new maplibregl.Popup({ closeButton: true, maxWidth: '280px' })
-    .setLngLat(lngLat)
-    .setHTML(html)
-    .on('close', () => { currentPopup = null; })
-    .addTo(map);
-
-  const scroller = document.getElementById('group-scroll');
-  const dotEls = () => document.querySelectorAll('.group-dot');
-  const updateDots = () => {
-    const i = Math.round(scroller.scrollLeft / scroller.clientWidth);
-    dotEls().forEach((d, di) => d.classList.toggle('active', di === i));
-  };
-  scroller.addEventListener('scroll', updateDots);
-  updateDots();
 }
 
 map.on('load', () => {
@@ -340,22 +236,13 @@ map.on('load', () => {
       .setLngLat(feature.geometry.coordinates)
       .addTo(map);
 
-    const record = { marker, category: cat, lngLat: feature.geometry.coordinates, properties: feature.properties };
-    allMarkers.push(record);
-
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      if (record.isRepresentative && record.groupMembers && record.groupMembers.length > 1) {
-        openGroupPopup(record.groupMembers.map(m => m.properties), record.groupLabel, feature.geometry.coordinates);
-      } else {
-        openPhotoPopup(feature.properties, feature.geometry.coordinates);
-      }
+      openPhotoPopup(feature.properties, feature.geometry.coordinates);
     });
+
+    allMarkers.push({ marker, category: cat });
   });
-  computeGroups();
-  updateMarkerLayout();
-  map.on('move', updateMarkerLayout);
-  map.on('zoom', updateMarkerLayout);
 });
 
 document.querySelectorAll('.legend-row[data-cat]').forEach(row => {

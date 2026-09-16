@@ -246,7 +246,12 @@ function updateMarkerLayout() {
     return { m, x: p.x, y: p.y, ox: 0, oy: 0, size: sizeFor(m.category) };
   });
 
-  for (let iter = 0; iter < 40; iter++) {
+  // Bounded repulsion: few iterations, damped, and each marker's total
+  // displacement is capped, so a dense cluster settles into gentle overlap
+  // instead of exploding across the map when there isn't enough room.
+  const MAX_OFFSET = 90;
+  const DAMPING = 0.5;
+  for (let iter = 0; iter < 10; iter++) {
     for (let i = 0; i < positions.length; i++) {
       for (let j = i + 1; j < positions.length; j++) {
         const a = positions[i], b = positions[j];
@@ -257,13 +262,20 @@ function updateMarkerLayout() {
         let dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; dist = 0.01; }
         if (dist < minDist) {
-          const push = (minDist - dist) / 2;
+          const push = ((minDist - dist) / 2) * DAMPING;
           const nx = dx / dist, ny = dy / dist;
           a.ox -= nx * push; a.oy -= ny * push;
           b.ox += nx * push; b.oy += ny * push;
         }
       }
     }
+    positions.forEach(p => {
+      const mag = Math.sqrt(p.ox * p.ox + p.oy * p.oy);
+      if (mag > MAX_OFFSET) {
+        p.ox = (p.ox / mag) * MAX_OFFSET;
+        p.oy = (p.oy / mag) * MAX_OFFSET;
+      }
+    });
   }
 
   positions.forEach(p => { p.m.marker.setOffset([p.ox, p.oy]); });

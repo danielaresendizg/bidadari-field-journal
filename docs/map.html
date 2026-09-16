@@ -55,6 +55,7 @@
   .maplibregl-ctrl-attrib{font-size:10px}
 
   .photo-marker{
+    position:relative;
     width:34px;height:34px;border-radius:50%;
     background-size:cover;background-position:center;background-color:#ddd;
     border:2.5px solid #fff;
@@ -68,6 +69,14 @@
   .photo-marker.cat-human{outline:3px solid #172554}
   .photo-marker.enlarged{width:68px;height:68px;outline-width:3.5px;border-width:3px;transition:width 200ms ease,height 200ms ease}
   .photo-marker.enlarged.cat-human{width:102px;height:102px;outline-width:4px;border-width:3px}
+  .photo-marker.grouped::after{
+    content:attr(data-count);
+    position:absolute;top:-6px;right:-6px;
+    background:#FF3B30;color:#fff;font-size:11px;font-weight:700;
+    width:20px;height:20px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid #fff;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
 
 </style>
 </head>
@@ -169,20 +178,61 @@ map.on('load', () => {
 let activeCats = new Set(['biotic','abiotic','human']);
 const allMarkers = [];
 
-function applyFilter() {
-  allMarkers.forEach(({ marker, category }) => {
-    marker.getElement().style.display = activeCats.has(category) ? '' : 'none';
+// filename -> { group, description }, filled in once the abiotic content-type
+// review is done; any abiotic photo not listed here just stays its own group.
+const ABIOTIC_GROUPS = {};
+
+function bioticGroupKey(species) {
+  if (!species) return null;
+  const m = species.match(/^([^(]+)/);
+  return (m ? m[1] : species).trim();
+}
+
+function computeGroups() {
+  const buckets = {};
+  allMarkers.forEach(m => {
+    let key, label;
+    if (m.category === 'biotic') {
+      key = bioticGroupKey(m.properties.species) || m.properties.filename;
+      label = bioticGroupKey(m.properties.species) || m.properties.species || m.properties.filename;
+    } else if (m.category === 'abiotic' && ABIOTIC_GROUPS[m.properties.filename]) {
+      key = ABIOTIC_GROUPS[m.properties.filename].group;
+      label = ABIOTIC_GROUPS[m.properties.filename].description;
+    } else {
+      key = m.properties.filename;
+      label = m.properties.species || m.category;
+    }
+    const bucketKey = m.category + '::' + key;
+    (buckets[bucketKey] = buckets[bucketKey] || []).push(m);
+    m._groupLabel = label;
   });
+  Object.values(buckets).forEach(members => {
+    members.forEach((m, i) => {
+      m.groupMembers = members;
+      m.isRepresentative = (i === 0);
+      m.groupLabel = m._groupLabel;
+      const el = m.marker.getElement();
+      el.dataset.count = members.length;
+    });
+  });
+}
+
+function applyFilter() {
   updateMarkerLayout();
 }
 
 function updateMarkerLayout() {
   const singleActive = activeCats.size === 1;
-  const visible = allMarkers.filter(m => activeCats.has(m.category));
 
   allMarkers.forEach(m => {
-    m.marker.getElement().classList.toggle('enlarged', singleActive && activeCats.has(m.category));
+    const show = activeCats.has(m.category) && (!singleActive || m.isRepresentative);
+    const el = m.marker.getElement();
+    el.style.display = show ? '' : 'none';
+    el.classList.toggle('enlarged', singleActive && show);
+    el.classList.toggle('grouped', singleActive && show && m.groupMembers && m.groupMembers.length > 1);
   });
+
+  const visible = allMarkers.filter(m => activeCats.has(m.category) && (!singleActive || m.isRepresentative));
 
   if (!singleActive) {
     allMarkers.forEach(m => m.marker.setOffset([0, 0]));
@@ -254,6 +304,52 @@ function openPhotoPopup(p, lngLat) {
     .addTo(map);
 }
 
+function openGroupPopup(members, label, lngLat) {
+  if (currentPopup) { currentPopup.remove(); currentPopup = null; }
+  let idx = 0;
+
+  const render = () => {
+    const p = members[idx];
+    return `
+      <div id="popup-card">
+        <div class="photo-wrap">
+          <img class="popup-photo" src="${p.thumb}" alt="${p.category}" onerror="this.style.display='none'">
+        </div>
+        <div class="fn">${label}</div>
+        <div class="row" style="color:#999;font-size:10px;margin-bottom:6px">${p.filename} &middot; ${idx + 1} / ${members.length}</div>
+        <div class="row"><span class="label">Date/time:</span>${p.datetime}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;gap:8px;">
+          <button id="group-prev" style="flex:1;cursor:pointer;">&larr; Prev</button>
+          <button id="group-next" style="flex:1;cursor:pointer;">Next &rarr;</button>
+        </div>
+      </div>`;
+  };
+
+  const wire = () => {
+    const prevBtn = document.getElementById('group-prev');
+    const nextBtn = document.getElementById('group-next');
+    if (prevBtn) prevBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      idx = (idx - 1 + members.length) % members.length;
+      currentPopup.setHTML(render());
+      wire();
+    });
+    if (nextBtn) nextBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      idx = (idx + 1) % members.length;
+      currentPopup.setHTML(render());
+      wire();
+    });
+  };
+
+  currentPopup = new maplibregl.Popup({ closeButton: true, maxWidth: '280px' })
+    .setLngLat(lngLat)
+    .setHTML(render())
+    .on('close', () => { currentPopup = null; })
+    .addTo(map);
+  wire();
+}
+
 map.on('load', () => {
   map.addSource('park-boundary', { type: 'geojson', data: parkBoundaryGeojson });
   map.addLayer({
@@ -304,13 +400,19 @@ map.on('load', () => {
       .setLngLat(feature.geometry.coordinates)
       .addTo(map);
 
+    const record = { marker, category: cat, lngLat: feature.geometry.coordinates, properties: feature.properties };
+    allMarkers.push(record);
+
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      openPhotoPopup(feature.properties, feature.geometry.coordinates);
+      if (record.isRepresentative && record.groupMembers && record.groupMembers.length > 1) {
+        openGroupPopup(record.groupMembers.map(m => m.properties), record.groupLabel, feature.geometry.coordinates);
+      } else {
+        openPhotoPopup(feature.properties, feature.geometry.coordinates);
+      }
     });
-
-    allMarkers.push({ marker, category: cat, lngLat: feature.geometry.coordinates });
   });
+  computeGroups();
   updateMarkerLayout();
   map.on('move', updateMarkerLayout);
   map.on('zoom', updateMarkerLayout);

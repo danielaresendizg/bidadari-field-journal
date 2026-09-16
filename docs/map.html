@@ -67,6 +67,7 @@
   .photo-marker.cat-abiotic{outline:3px solid #0000FF}
   .photo-marker.cat-human{outline:3px solid #172554}
   .photo-marker.enlarged{width:68px;height:68px;outline-width:3.5px;border-width:3px;transition:width 200ms ease,height 200ms ease}
+  .photo-marker.enlarged.cat-human{width:102px;height:102px;outline-width:4px;border-width:3px}
 
 </style>
 </head>
@@ -188,16 +189,17 @@ function updateMarkerLayout() {
     return;
   }
 
-  const minDist = 76;
+  const sizeFor = (cat) => cat === 'human' ? 102 : 68;
   const positions = visible.map(m => {
     const p = map.project(m.lngLat);
-    return { m, x: p.x, y: p.y, ox: 0, oy: 0 };
+    return { m, x: p.x, y: p.y, ox: 0, oy: 0, size: sizeFor(m.category) };
   });
 
   for (let iter = 0; iter < 40; iter++) {
     for (let i = 0; i < positions.length; i++) {
       for (let j = i + 1; j < positions.length; j++) {
         const a = positions[i], b = positions[j];
+        const minDist = (a.size + b.size) / 2 + 8;
         const ax = a.x + a.ox, ay = a.y + a.oy;
         const bx = b.x + b.ox, by = b.y + b.oy;
         let dx = bx - ax, dy = by - ay;
